@@ -46,3 +46,12 @@ export function login(email: string, password: string): { user: User } | { error
 export function logout() {
   localStorage.removeItem('taskflow-user')
 }
+
+/** Pre-seeds a demo account so you can log in with user / user straight away. */
+export function seedDemoAccount() {
+  const accounts = getAccounts()
+  if (!accounts['user']) {
+    accounts['user'] = { name: 'Demo User', password: 'user' }
+    localStorage.setItem('taskflow-accounts', JSON.stringify(accounts))
+  }
+}

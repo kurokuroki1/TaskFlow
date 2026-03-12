@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { login, getUser } from '@/lib/auth'
+import { login, getUser, seedDemoAccount } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    seedDemoAccount()
     if (getUser()) router.replace('/')
   }, [router])
 
@@ -56,6 +57,26 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold tracking-tight">TaskFlow</h1>
             <p className="text-sm text-muted-foreground mt-1">Sign in to your workspace</p>
           </div>
+        </div>
+
+        {/* Demo hint */}
+        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-center">
+          <span className="text-muted-foreground">Try the demo — email: </span>
+          <button
+            type="button"
+            className="font-mono font-semibold text-primary hover:underline"
+            onClick={() => { setEmail('user'); setPassword('user') }}
+          >
+            user
+          </button>
+          <span className="text-muted-foreground">  password: </span>
+          <button
+            type="button"
+            className="font-mono font-semibold text-primary hover:underline"
+            onClick={() => { setEmail('user'); setPassword('user') }}
+          >
+            user
+          </button>
         </div>
 
         {/* Card */}
