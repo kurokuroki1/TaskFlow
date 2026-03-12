@@ -12,7 +12,7 @@ import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortabl
 import Column from '@/components/ui/Column'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LayoutDashboard, RotateCcw, Plus, Check, X, LogOut } from 'lucide-react'
+import { LayoutDashboard, RotateCcw, Plus, Check, X, LogOut, Layers } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getUser, logout, type User } from '@/lib/auth'
 
@@ -26,7 +26,7 @@ export default function BoardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
-  const { columns, moveTask, addColumn, resetBoard } = useTaskStore()
+  const { columns, moveTask, addColumn, resetBoard, initForUser } = useTaskStore()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState('')
@@ -39,8 +39,9 @@ export default function BoardPage() {
       router.replace('/auth/login')
     } else {
       setUser(u)
+      initForUser(u.email)
     }
-  }, [router])
+  }, [router, initForUser])
 
   useEffect(() => {
     if (addingColumn) columnInputRef.current?.focus()
@@ -49,6 +50,10 @@ export default function BoardPage() {
   const handleLogout = () => {
     logout()
     router.replace('/auth/login')
+  }
+
+  const handleReset = () => {
+    if (confirm('Reset the board? This will delete all columns and tasks.')) resetBoard()
   }
 
   const handleAddColumn = () => {
@@ -144,7 +149,7 @@ export default function BoardPage() {
               </Button>
             )}
 
-            <Button variant="ghost" size="sm" className="hidden sm:flex gap-1.5 text-muted-foreground" onClick={resetBoard}>
+            <Button variant="ghost" size="sm" className="hidden sm:flex gap-1.5 text-muted-foreground" onClick={handleReset}>
               <RotateCcw size={14} suppressHydrationWarning />
               <span className="hidden lg:inline">Reset</span>
             </Button>
@@ -174,45 +179,63 @@ export default function BoardPage() {
 
       {/* Board */}
       <main className="flex-1 p-3 sm:p-6">
-        <div className="max-w-screen-2xl mx-auto">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-          >
-            <SortableContext
-              items={columns.map(c => c.id)}
-              strategy={horizontalListSortingStrategy}
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:gap-5 lg:overflow-x-auto lg:pb-6 lg:snap-x lg:snap-mandatory lg:scroll-smooth"
-                style={{ WebkitOverflowScrolling: 'touch' }}
-              >
-                {columns.map(column => (
-                  <Column key={column.id} column={column} />
-                ))}
+        <div className="max-w-screen-2xl mx-auto h-full">
+          {columns.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+                <Layers size={28} className="text-muted-foreground" suppressHydrationWarning />
               </div>
-            </SortableContext>
-
-            <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
-              {activeTask && (
-                <div className={cn(
-                  'rounded-xl border border-border bg-card px-4 py-3 w-[min(80vw,20rem)]',
-                  'shadow-xl border-l-4 cursor-grabbing select-none rotate-1 scale-105',
-                  statusAccent[activeTask.status] ?? 'border-l-primary'
-                )}>
-                  <h3 className="font-semibold text-sm leading-snug text-card-foreground pr-6">
-                    {activeTask.title}
-                  </h3>
-                  {activeTask.description && (
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
-                      {activeTask.description}
-                    </p>
-                  )}
+              <div>
+                <h2 className="text-lg font-semibold">Your board is empty</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Add your first column to start organizing tasks
+                </p>
+              </div>
+              <Button onClick={() => setAddingColumn(true)} className="gap-1.5 mt-2">
+                <Plus size={15} suppressHydrationWarning />
+                Add your first column
+              </Button>
+            </div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+            >
+              <SortableContext
+                items={columns.map(c => c.id)}
+                strategy={horizontalListSortingStrategy}
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:gap-5 lg:overflow-x-auto lg:pb-6 lg:snap-x lg:snap-mandatory lg:scroll-smooth"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                >
+                  {columns.map(column => (
+                    <Column key={column.id} column={column} />
+                  ))}
                 </div>
-              )}
-            </DragOverlay>
-          </DndContext>
+              </SortableContext>
+
+              <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+                {activeTask && (
+                  <div className={cn(
+                    'rounded-xl border border-border bg-card px-4 py-3 w-[min(80vw,20rem)]',
+                    'shadow-xl border-l-4 cursor-grabbing select-none rotate-1 scale-105',
+                    statusAccent[activeTask.status] ?? 'border-l-primary'
+                  )}>
+                    <h3 className="font-semibold text-sm leading-snug text-card-foreground pr-6">
+                      {activeTask.title}
+                    </h3>
+                    {activeTask.description && (
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+                        {activeTask.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
+          )}
         </div>
       </main>
     </div>

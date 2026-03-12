@@ -1,4 +1,3 @@
-// stores/taskStore.ts
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -16,7 +15,9 @@ export type Column = {
 }
 
 type TaskStore = {
+  userId: string | null
   columns: Column[]
+  initForUser: (userId: string) => void
   addTask: (columnId: string, title: string, description?: string) => void
   updateTask: (taskId: string, columnId: string, title: string, description?: string) => void
   deleteTask: (taskId: string, columnId: string) => void
@@ -36,7 +37,14 @@ const initialColumns: Column[] = [
 export const useTaskStore = create<TaskStore>()(
   persist(
     (set) => ({
+      userId: null,
       columns: initialColumns,
+
+      initForUser: (userId) =>
+        set((state) => {
+          if (state.userId === userId) return {}
+          return { userId, columns: initialColumns }
+        }),
 
       addTask: (columnId, title, description = '') =>
         set((state) => ({
@@ -93,7 +101,8 @@ export const useTaskStore = create<TaskStore>()(
           columns: state.columns.filter((col) => col.id !== columnId),
         })),
 
-      resetBoard: () => set({ columns: initialColumns }),
+      resetBoard: () =>
+        set((state) => ({ columns: initialColumns, userId: state.userId })),
 
       moveTask: (taskId, sourceColumnId, targetColumnId, newPosition) =>
         set((state) => {

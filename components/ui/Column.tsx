@@ -126,7 +126,9 @@ export default function Column({ column }: ColumnProps) {
             </button>
             {/* Delete column button */}
             <button
-              onClick={() => deleteColumn(column.id)}
+              onClick={() => {
+                if (confirm(`Delete "${column.title}" and all its tasks?`)) deleteColumn(column.id)
+              }}
               className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
               aria-label="Delete column"
             >
