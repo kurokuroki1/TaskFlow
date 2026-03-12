@@ -19,7 +19,7 @@ type TaskStore = {
   columns: Column[]
   addTask: (columnId: string, title: string, description?: string) => void
   moveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newPosition: number) => void
-  // add more actions later: updateTask, deleteTask, addColumn...
+  addColumn: (title: string) => void
 }
 
 const initialColumns: Column[] = [
@@ -51,6 +51,18 @@ export const useTaskStore = create<TaskStore>()(
                 }
               : col
           ),
+        })),
+
+      addColumn: (title) =>
+        set((state) => ({
+          columns: [
+            ...state.columns,
+            {
+              id: crypto.randomUUID(),
+              title,
+              tasks: [],
+            },
+          ],
         })),
 
       moveTask: (taskId, sourceColumnId, targetColumnId, newPosition) =>
