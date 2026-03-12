@@ -34,17 +34,17 @@ export default function BoardPage() {
         <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <LayoutDashboard size={14} className="text-primary-foreground" />
+              <LayoutDashboard size={14} className="text-primary-foreground" suppressHydrationWarning />
             </div>
             <span className="font-bold text-lg tracking-tight">TaskFlow</span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5">
-              <Plus size={14} />
+              <Plus size={14} suppressHydrationWarning />
               Add Column
             </Button>
             <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-              <RotateCcw size={14} />
+              <RotateCcw size={14} suppressHydrationWarning />
               Reset
             </Button>
             <ThemeToggle />

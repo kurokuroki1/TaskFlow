@@ -91,7 +91,7 @@ export default function Column({ column }: ColumnProps) {
             'hover:bg-accent hover:text-accent-foreground',
             'transition-colors duration-150'
           )}>
-            <Plus size={14} />
+            <Plus size={14} suppressHydrationWarning />
             Add task
           </button>
         </div>
