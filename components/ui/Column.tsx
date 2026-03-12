@@ -119,7 +119,7 @@ export default function Column({ column }: ColumnProps) {
             <button
               onPointerDown={(e) => e.preventDefault()}
               onClick={() => setRenaming(true)}
-              className="opacity-0 group-hover/header:opacity-100 p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-all ml-1"
+              className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-all ml-1"
               aria-label="Rename column"
             >
               <Pencil size={12} suppressHydrationWarning />
@@ -127,7 +127,7 @@ export default function Column({ column }: ColumnProps) {
             {/* Delete column button */}
             <button
               onClick={() => deleteColumn(column.id)}
-              className="opacity-0 group-hover/header:opacity-100 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+              className="opacity-100 sm:opacity-0 sm:group-hover/header:opacity-100 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
               aria-label="Delete column"
             >
               <Trash2 size={12} suppressHydrationWarning />
