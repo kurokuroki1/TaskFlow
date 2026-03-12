@@ -32,11 +32,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
-    if (!mounted) return <>{children}</>;
-
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
-            <div className={theme}>{children}</div>
+            <div className={mounted ? theme : ''}>{children}</div>
         </ThemeContext.Provider>
     );
 }
