@@ -4,18 +4,18 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login, getUser, seedDemoAccount } from '@/lib/auth'
+import { AuthShell } from '@/components/ui/AuthShell'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { LayoutDashboard, Eye, EyeOff, LogIn } from 'lucide-react'
+import { LogIn } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     seedDemoAccount()
@@ -28,9 +28,7 @@ export default function LoginPage() {
       toast.error('Please fill in all fields.')
       return
     }
-    setLoading(true)
     const result = login(email, password)
-    setLoading(false)
     if ('error' in result) {
       toast.error(result.error)
     } else {
@@ -39,105 +37,61 @@ export default function LoginPage() {
     }
   }
 
+  const fillDemo = () => { setEmail('user'); setPassword('user') }
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      {/* Background blobs */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8 gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-            <LayoutDashboard size={22} className="text-primary-foreground" suppressHydrationWarning />
-          </div>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight">TaskFlow</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to your workspace</p>
-          </div>
-        </div>
-
-        {/* Demo hint */}
-        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-center">
-          <span className="text-muted-foreground">Try the demo — email: </span>
-          <button
-            type="button"
-            className="font-mono font-semibold text-primary hover:underline"
-            onClick={() => { setEmail('user'); setPassword('user') }}
-          >
-            user
-          </button>
-          <span className="text-muted-foreground">  password: </span>
-          <button
-            type="button"
-            className="font-mono font-semibold text-primary hover:underline"
-            onClick={() => { setEmail('user'); setPassword('user') }}
-          >
-            user
-          </button>
-        </div>
-
-        {/* Card */}
-        <div className="rounded-2xl border border-border bg-card shadow-lg p-6 space-y-5">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email or username</Label>
-              <Input
-                id="email"
-                type="text"
-                placeholder="name@example.com or user"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                autoComplete="email"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  autoComplete="current-password"
-                  required
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword
-                    ? <EyeOff size={15} suppressHydrationWarning />
-                    : <Eye size={15} suppressHydrationWarning />}
-                </button>
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full gap-2" disabled={loading} size="md">
-              <LogIn size={15} suppressHydrationWarning />
-              {loading ? 'Signing in…' : 'Sign In'}
-            </Button>
-          </form>
-        </div>
-
-        <p className="text-center text-sm text-muted-foreground mt-5">
+    <AuthShell
+      subtitle="Sign in to your workspace"
+      footer={
+        <>
           Don&apos;t have an account?{' '}
           <Link href="/auth/signup" className="font-medium text-primary hover:underline">
             Sign up
           </Link>
+        </>
+      }
+    >
+      {/* Demo hint */}
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-center space-y-1">
+        <p className="text-muted-foreground text-xs">
+          Demo: <span className="font-mono font-semibold text-primary">user</span> / <span className="font-mono font-semibold text-primary">user</span>
         </p>
+        <button type="button" onClick={fillDemo} className="text-xs font-medium text-primary hover:underline">
+          Fill demo credentials
+        </button>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="email">Email or username</Label>
+          <Input
+            id="email"
+            type="text"
+            placeholder="name@example.com or user"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="password">Password</Label>
+          <PasswordInput
+            id="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </div>
+
+        <Button type="submit" className="w-full gap-2" size="md">
+          <LogIn size={15} suppressHydrationWarning />
+          Sign In
+        </Button>
+      </form>
+    </AuthShell>
   )
 }

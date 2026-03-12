@@ -25,7 +25,6 @@ const statusAccent: Record<string, string> = {
 export default function BoardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [authReady, setAuthReady] = useState(false)
 
   const { columns, moveTask, addColumn, resetBoard } = useTaskStore()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
@@ -40,7 +39,6 @@ export default function BoardPage() {
       router.replace('/auth/login')
     } else {
       setUser(u)
-      setAuthReady(true)
     }
   }, [router])
 
@@ -99,7 +97,7 @@ export default function BoardPage() {
     moveTask(activeId, sourceColumn.id, targetColumn.id, newPosition)
   }
 
-  if (!authReady) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
