@@ -185,7 +185,7 @@ export default function BoardPage() {
               items={columns.map(c => c.id)}
               strategy={horizontalListSortingStrategy}
             >
-              <div className="flex gap-5 overflow-x-auto pb-6 snap-x snap-mandatory scroll-smooth"
+              <div className="flex flex-col gap-4 lg:flex-row lg:gap-5 lg:overflow-x-auto lg:pb-6 lg:snap-x lg:snap-mandatory lg:scroll-smooth"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 {columns.map(column => (
