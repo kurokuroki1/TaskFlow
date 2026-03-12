@@ -19,7 +19,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         className
       )}
     >
-      {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+      {theme === 'light' ? <Moon size={16} suppressHydrationWarning /> : <Sun size={16} suppressHydrationWarning />}
     </button>
   )
 }
