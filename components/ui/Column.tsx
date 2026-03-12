@@ -1,12 +1,13 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Card } from '@/components/ui/card'
 import { TaskCard } from '@/components/ui/TaskCard'
 import { cn } from '@/lib/utils'
-import { Column as ColumnType } from '@/stores/taskStore'
-import { Plus } from 'lucide-react'
+import { Column as ColumnType, useTaskStore } from '@/stores/taskStore'
+import { Plus, Check, X } from 'lucide-react'
 
 interface ColumnProps {
   column: ColumnType
@@ -25,6 +26,26 @@ export default function Column({ column }: ColumnProps) {
     id: column.id,
     data: { type: 'Column', columnId: column.id },
   })
+  const { addTask } = useTaskStore()
+  const [addingTask, setAddingTask] = useState(false)
+  const [taskTitle, setTaskTitle] = useState('')
+  const taskInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (addingTask) taskInputRef.current?.focus()
+  }, [addingTask])
+
+  const handleAddTask = () => {
+    const title = taskTitle.trim()
+    if (title) addTask(column.id, title)
+    setTaskTitle('')
+    setAddingTask(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleAddTask()
+    if (e.key === 'Escape') { setAddingTask(false); setTaskTitle('') }
+  }
 
   const accent = columnAccents[column.id] ?? fallbackAccent
 
@@ -83,17 +104,48 @@ export default function Column({ column }: ColumnProps) {
           </div>
         </SortableContext>
 
-        {/* Add task button */}
+        {/* Add task button / inline form */}
         <div className="px-3 pb-3">
-          <button className={cn(
-            'w-full flex items-center justify-center gap-1.5 py-2 rounded-lg',
-            'text-xs text-muted-foreground font-medium',
-            'hover:bg-accent hover:text-accent-foreground',
-            'transition-colors duration-150'
-          )}>
-            <Plus size={14} suppressHydrationWarning />
-            Add task
-          </button>
+          {addingTask ? (
+            <div className="flex flex-col gap-1.5">
+              <input
+                ref={taskInputRef}
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Task title..."
+                className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+              />
+              <div className="flex gap-1.5">
+                <button
+                  onClick={handleAddTask}
+                  className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                >
+                  <Check size={12} suppressHydrationWarning />
+                  Add
+                </button>
+                <button
+                  onClick={() => { setAddingTask(false); setTaskTitle('') }}
+                  className="inline-flex items-center justify-center w-8 rounded-md border border-input hover:bg-accent transition-colors"
+                >
+                  <X size={12} suppressHydrationWarning />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingTask(true)}
+              className={cn(
+                'w-full flex items-center justify-center gap-1.5 py-2 rounded-lg',
+                'text-xs text-muted-foreground font-medium',
+                'hover:bg-accent hover:text-accent-foreground',
+                'transition-colors duration-150'
+              )}
+            >
+              <Plus size={14} suppressHydrationWarning />
+              Add task
+            </button>
+          )}
         </div>
       </Card>
     </div>
