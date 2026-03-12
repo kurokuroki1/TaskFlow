@@ -2,13 +2,23 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useTaskStore } from '@/stores/taskStore'
-import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { useTaskStore, Task } from '@/stores/taskStore'
+import {
+  DndContext, closestCenter, DragEndEvent, DragStartEvent,
+  DragOverlay, PointerSensor, useSensor, useSensors,
+} from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
 import Column from '@/components/ui/Column'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LayoutDashboard, RotateCcw, Plus, Check, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+const statusAccent: Record<string, string> = {
+  'todo':        'border-l-violet-400',
+  'in-progress': 'border-l-amber-400',
+  'done':        'border-l-emerald-400',
+}
 
 export default function BoardPage() {
   const { columns, moveTask, addColumn, resetBoard } = useTaskStore()
@@ -16,6 +26,7 @@ export default function BoardPage() {
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState('')
   const columnInputRef = useRef<HTMLInputElement>(null)
+  const [activeTask, setActiveTask] = useState<(Task & { status: string }) | null>(null)
 
   useEffect(() => {
     if (addingColumn) columnInputRef.current?.focus()
@@ -33,7 +44,20 @@ export default function BoardPage() {
     if (e.key === 'Escape') { setAddingColumn(false); setNewColumnTitle('') }
   }
 
+  const onDragStart = (event: DragStartEvent) => {
+    const activeId = event.active.id as string
+    for (const col of columns) {
+      const task = col.tasks.find((t) => t.id === activeId)
+      if (task) {
+        const status = col.id === 'done' ? 'done' : col.id === 'in-progress' ? 'in-progress' : 'todo'
+        setActiveTask({ ...task, status })
+        return
+      }
+    }
+  }
+
   const onDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null)
     const { active, over } = event
     if (!over || active.id === over.id) return
 
@@ -43,7 +67,6 @@ export default function BoardPage() {
     const sourceColumn = columns.find((c) => c.tasks.some((t) => t.id === activeId))
     if (!sourceColumn) return
 
-    // over could be a column id or a task id
     const targetColumn =
       columns.find((c) => c.id === overId) ??
       columns.find((c) => c.tasks.some((t) => t.id === overId))
@@ -105,6 +128,7 @@ export default function BoardPage() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={onDragStart}
             onDragEnd={onDragEnd}
           >
             <SortableContext
@@ -117,6 +141,25 @@ export default function BoardPage() {
                 ))}
               </div>
             </SortableContext>
+
+            <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+              {activeTask && (
+                <div className={cn(
+                  'rounded-xl border border-border bg-card px-4 py-3 w-80',
+                  'shadow-xl border-l-4 cursor-grabbing select-none rotate-1 scale-105',
+                  statusAccent[activeTask.status] ?? 'border-l-primary'
+                )}>
+                  <h3 className="font-semibold text-sm leading-snug text-card-foreground pr-6">
+                    {activeTask.title}
+                  </h3>
+                  {activeTask.description && (
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+                      {activeTask.description}
+                    </p>
+                  )}
+                </div>
+              )}
+            </DragOverlay>
           </DndContext>
         </div>
       </main>

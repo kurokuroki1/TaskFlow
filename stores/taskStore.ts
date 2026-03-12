@@ -18,9 +18,12 @@ export type Column = {
 type TaskStore = {
   columns: Column[]
   addTask: (columnId: string, title: string, description?: string) => void
+  updateTask: (taskId: string, columnId: string, title: string, description?: string) => void
   deleteTask: (taskId: string, columnId: string) => void
   moveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newPosition: number) => void
   addColumn: (title: string) => void
+  renameColumn: (columnId: string, title: string) => void
+  deleteColumn: (columnId: string) => void
   resetBoard: () => void
 }
 
@@ -43,13 +46,22 @@ export const useTaskStore = create<TaskStore>()(
                   ...col,
                   tasks: [
                     ...col.tasks,
-                    {
-                      id: crypto.randomUUID(),
-                      title,
-                      description,
-                      position: col.tasks.length,
-                    },
+                    { id: crypto.randomUUID(), title, description, position: col.tasks.length },
                   ],
+                }
+              : col
+          ),
+        })),
+
+      updateTask: (taskId, columnId, title, description = '') =>
+        set((state) => ({
+          columns: state.columns.map((col) =>
+            col.id === columnId
+              ? {
+                  ...col,
+                  tasks: col.tasks.map((t) =>
+                    t.id === taskId ? { ...t, title, description } : t
+                  ),
                 }
               : col
           ),
@@ -66,10 +78,19 @@ export const useTaskStore = create<TaskStore>()(
 
       addColumn: (title) =>
         set((state) => ({
-          columns: [
-            ...state.columns,
-            { id: crypto.randomUUID(), title, tasks: [] },
-          ],
+          columns: [...state.columns, { id: crypto.randomUUID(), title, tasks: [] }],
+        })),
+
+      renameColumn: (columnId, title) =>
+        set((state) => ({
+          columns: state.columns.map((col) =>
+            col.id === columnId ? { ...col, title } : col
+          ),
+        })),
+
+      deleteColumn: (columnId) =>
+        set((state) => ({
+          columns: state.columns.filter((col) => col.id !== columnId),
         })),
 
       resetBoard: () => set({ columns: initialColumns }),
