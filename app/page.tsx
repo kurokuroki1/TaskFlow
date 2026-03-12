@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useTaskStore } from '@/stores/taskStore'
-import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
 import Column from '@/components/ui/Column'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,8 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LayoutDashboard, RotateCcw, Plus, Check, X } from 'lucide-react'
 
 export default function BoardPage() {
-  const { columns, moveTask, addColumn } = useTaskStore()
+  const { columns, moveTask, addColumn, resetBoard } = useTaskStore()
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState('')
   const columnInputRef = useRef<HTMLInputElement>(null)
@@ -34,17 +35,24 @@ export default function BoardPage() {
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    if (!over) return
+    if (!over || active.id === over.id) return
 
-    const taskId = active.id as string
-    const targetColumnId = over.id as string
+    const activeId = active.id as string
+    const overId = over.id as string
 
-    const sourceColumn = columns.find(c =>
-      c.tasks.some(t => t.id === taskId)
-    )
-
+    const sourceColumn = columns.find((c) => c.tasks.some((t) => t.id === activeId))
     if (!sourceColumn) return
-    moveTask(taskId, sourceColumn.id, targetColumnId, 999)
+
+    // over could be a column id or a task id
+    const targetColumn =
+      columns.find((c) => c.id === overId) ??
+      columns.find((c) => c.tasks.some((t) => t.id === overId))
+    if (!targetColumn) return
+
+    const overTaskIndex = targetColumn.tasks.findIndex((t) => t.id === overId)
+    const newPosition = overTaskIndex >= 0 ? overTaskIndex : targetColumn.tasks.length
+
+    moveTask(activeId, sourceColumn.id, targetColumn.id, newPosition)
   }
 
   return (
@@ -82,7 +90,7 @@ export default function BoardPage() {
                 Add Column
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={resetBoard}>
               <RotateCcw size={14} suppressHydrationWarning />
               Reset
             </Button>
@@ -95,6 +103,7 @@ export default function BoardPage() {
       <main className="flex-1 p-6">
         <div className="max-w-screen-2xl mx-auto">
           <DndContext
+            sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={onDragEnd}
           >
