@@ -119,7 +119,7 @@ export default function BoardPage() {
           </div>
 
           {/* Right: actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {addingColumn ? (
               <div className="flex items-center gap-1.5">
                 <input
@@ -144,9 +144,9 @@ export default function BoardPage() {
               </Button>
             )}
 
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={resetBoard}>
+            <Button variant="ghost" size="sm" className="hidden sm:flex gap-1.5 text-muted-foreground" onClick={resetBoard}>
               <RotateCcw size={14} suppressHydrationWarning />
-              <span className="hidden sm:inline">Reset</span>
+              <span className="hidden lg:inline">Reset</span>
             </Button>
 
             <ThemeToggle />
@@ -185,7 +185,9 @@ export default function BoardPage() {
               items={columns.map(c => c.id)}
               strategy={horizontalListSortingStrategy}
             >
-              <div className="flex gap-5 overflow-x-auto pb-6">
+              <div className="flex gap-5 overflow-x-auto pb-6 snap-x snap-mandatory scroll-smooth"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {columns.map(column => (
                   <Column key={column.id} column={column} />
                 ))}

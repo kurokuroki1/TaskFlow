@@ -78,7 +78,7 @@ export default function Column({ column }: ColumnProps) {
   const accent = columnAccents[column.id] ?? fallbackAccent
 
   return (
-    <div ref={setNodeRef} className="w-[min(80vw,20rem)] shrink-0">
+    <div ref={setNodeRef} className="w-[min(80vw,20rem)] shrink-0 snap-start">
       <Card className={cn(
         'flex flex-col border bg-card/80 backdrop-blur-sm transition-all duration-200',
         isOver && 'ring-2 ring-primary ring-offset-2 shadow-lg shadow-primary/10'
