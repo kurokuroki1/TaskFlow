@@ -109,7 +109,7 @@ export default function BoardPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-screen-2xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
           {/* Left: logo + title */}
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
@@ -128,7 +128,7 @@ export default function BoardPage() {
                   onChange={(e) => setNewColumnTitle(e.target.value)}
                   onKeyDown={handleColumnKeyDown}
                   placeholder="Column name..."
-                  className="h-8 w-36 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  className="h-8 w-28 sm:w-36 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
                 <button onClick={handleAddColumn} className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
                   <Check size={13} suppressHydrationWarning />
@@ -140,13 +140,13 @@ export default function BoardPage() {
             ) : (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setAddingColumn(true)}>
                 <Plus size={14} suppressHydrationWarning />
-                Add Column
+                <span className="hidden sm:inline">Add Column</span>
               </Button>
             )}
 
             <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={resetBoard}>
               <RotateCcw size={14} suppressHydrationWarning />
-              Reset
+              <span className="hidden sm:inline">Reset</span>
             </Button>
 
             <ThemeToggle />
@@ -173,7 +173,7 @@ export default function BoardPage() {
       </header>
 
       {/* Board */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-3 sm:p-6">
         <div className="max-w-screen-2xl mx-auto">
           <DndContext
             sensors={sensors}
@@ -195,7 +195,7 @@ export default function BoardPage() {
             <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
               {activeTask && (
                 <div className={cn(
-                  'rounded-xl border border-border bg-card px-4 py-3 w-80',
+                  'rounded-xl border border-border bg-card px-4 py-3 w-[min(80vw,20rem)]',
                   'shadow-xl border-l-4 cursor-grabbing select-none rotate-1 scale-105',
                   statusAccent[activeTask.status] ?? 'border-l-primary'
                 )}>
