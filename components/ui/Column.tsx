@@ -6,7 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Card } from '@/components/ui/card'
 import { TaskCard } from '@/components/ui/TaskCard'
 import { cn } from '@/lib/utils'
-import { Column as ColumnType, useTaskStore } from '@/stores/taskStore'
+import { Column as ColumnType, useTaskStore, Task } from '@/stores/taskStore'
 import { Plus, Check, X } from 'lucide-react'
 
 interface ColumnProps {
@@ -26,7 +26,7 @@ export default function Column({ column }: ColumnProps) {
     id: column.id,
     data: { type: 'Column', columnId: column.id },
   })
-  const { addTask } = useTaskStore()
+  const { addTask, deleteTask } = useTaskStore()
   const [addingTask, setAddingTask] = useState(false)
   const [taskTitle, setTaskTitle] = useState('')
   const taskInputRef = useRef<HTMLInputElement>(null)
@@ -82,13 +82,14 @@ export default function Column({ column }: ColumnProps) {
             isOver && 'bg-primary/5 rounded-b-none'
           )}>
             {column.tasks.length > 0 ? (
-              column.tasks.map((task) => (
+              column.tasks.map((task: Task) => (
                 <TaskCard
                   key={task.id}
                   id={task.id}
                   title={task.title}
                   description={task.description}
                   status={column.id === 'done' ? 'done' : column.id === 'in-progress' ? 'in-progress' : 'todo'}
+                  onDelete={(id) => deleteTask(id, column.id)}
                 />
               ))
             ) : (

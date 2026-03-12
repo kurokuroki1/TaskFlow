@@ -18,8 +18,10 @@ export type Column = {
 type TaskStore = {
   columns: Column[]
   addTask: (columnId: string, title: string, description?: string) => void
+  deleteTask: (taskId: string, columnId: string) => void
   moveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newPosition: number) => void
   addColumn: (title: string) => void
+  resetBoard: () => void
 }
 
 const initialColumns: Column[] = [
@@ -30,7 +32,7 @@ const initialColumns: Column[] = [
 
 export const useTaskStore = create<TaskStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       columns: initialColumns,
 
       addTask: (columnId, title, description = '') =>
@@ -53,56 +55,56 @@ export const useTaskStore = create<TaskStore>()(
           ),
         })),
 
+      deleteTask: (taskId, columnId) =>
+        set((state) => ({
+          columns: state.columns.map((col) =>
+            col.id === columnId
+              ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+              : col
+          ),
+        })),
+
       addColumn: (title) =>
         set((state) => ({
           columns: [
             ...state.columns,
-            {
-              id: crypto.randomUUID(),
-              title,
-              tasks: [],
-            },
+            { id: crypto.randomUUID(), title, tasks: [] },
           ],
         })),
 
+      resetBoard: () => set({ columns: initialColumns }),
+
       moveTask: (taskId, sourceColumnId, targetColumnId, newPosition) =>
         set((state) => {
-          let movedTask: Task | undefined
+          const sourceCol = state.columns.find((c) => c.id === sourceColumnId)
+          if (!sourceCol) return state
+          const task = sourceCol.tasks.find((t) => t.id === taskId)
+          if (!task) return state
 
-          const updatedColumns = state.columns.map((col) => {
-            if (col.id === sourceColumnId) {
-              const remainingTasks = col.tasks.filter((t) => {
-                if (t.id === taskId) {
-                  movedTask = t
-                  return false
-                }
-                return true
-              })
-              return { ...col, tasks: remainingTasks }
+          if (sourceColumnId === targetColumnId) {
+            const tasks = sourceCol.tasks.filter((t) => t.id !== taskId)
+            tasks.splice(newPosition, 0, task)
+            return {
+              columns: state.columns.map((col) =>
+                col.id === sourceColumnId ? { ...col, tasks } : col
+              ),
             }
-            return col
-          })
-
-          if (!movedTask) return state
+          }
 
           return {
-            columns: updatedColumns.map((col) =>
-              col.id === targetColumnId
-                ? {
-                    ...col,
-                    tasks: [
-                      ...col.tasks.slice(0, newPosition),
-                      { ...movedTask!, position: newPosition },
-                      ...col.tasks.slice(newPosition),
-                    ],
-                  }
-                : col
-            ),
+            columns: state.columns.map((col) => {
+              if (col.id === sourceColumnId)
+                return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+              if (col.id === targetColumnId) {
+                const tasks = [...col.tasks]
+                tasks.splice(newPosition, 0, { ...task })
+                return { ...col, tasks }
+              }
+              return col
+            }),
           }
         }),
     }),
-    {
-      name: 'taskflow-storage',
-    }
+    { name: 'taskflow-storage' }
   )
 )
