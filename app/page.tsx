@@ -1,7 +1,8 @@
-// app/board/page.tsx
+// app/page.tsx
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTaskStore, Task } from '@/stores/taskStore'
 import {
   DndContext, closestCenter, DragEndEvent, DragStartEvent,
@@ -11,8 +12,9 @@ import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortabl
 import Column from '@/components/ui/Column'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LayoutDashboard, RotateCcw, Plus, Check, X } from 'lucide-react'
+import { LayoutDashboard, RotateCcw, Plus, Check, X, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getUser, logout, type User } from '@/lib/auth'
 
 const statusAccent: Record<string, string> = {
   'todo':        'border-l-violet-400',
@@ -21,6 +23,10 @@ const statusAccent: Record<string, string> = {
 }
 
 export default function BoardPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [authReady, setAuthReady] = useState(false)
+
   const { columns, moveTask, addColumn, resetBoard } = useTaskStore()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [addingColumn, setAddingColumn] = useState(false)
@@ -29,8 +35,23 @@ export default function BoardPage() {
   const [activeTask, setActiveTask] = useState<(Task & { status: string }) | null>(null)
 
   useEffect(() => {
+    const u = getUser()
+    if (!u) {
+      router.replace('/auth/login')
+    } else {
+      setUser(u)
+      setAuthReady(true)
+    }
+  }, [router])
+
+  useEffect(() => {
     if (addingColumn) columnInputRef.current?.focus()
   }, [addingColumn])
+
+  const handleLogout = () => {
+    logout()
+    router.replace('/auth/login')
+  }
 
   const handleAddColumn = () => {
     const title = newColumnTitle.trim()
@@ -78,17 +99,28 @@ export default function BoardPage() {
     moveTask(activeId, sourceColumn.id, targetColumn.id, newPosition)
   }
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
+          {/* Left: logo + title */}
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <LayoutDashboard size={14} className="text-primary-foreground" suppressHydrationWarning />
             </div>
             <span className="font-bold text-lg tracking-tight">TaskFlow</span>
           </div>
+
+          {/* Right: actions */}
           <div className="flex items-center gap-2">
             {addingColumn ? (
               <div className="flex items-center gap-1.5">
@@ -113,11 +145,31 @@ export default function BoardPage() {
                 Add Column
               </Button>
             )}
+
             <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={resetBoard}>
               <RotateCcw size={14} suppressHydrationWarning />
               Reset
             </Button>
+
             <ThemeToggle />
+
+            {/* User avatar + logout */}
+            <div className="flex items-center gap-2 pl-2 border-l border-border ml-1">
+              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-semibold select-none">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:block text-sm font-medium text-foreground max-w-[120px] truncate">
+                {user?.name}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                aria-label="Log out"
+                title="Log out"
+              >
+                <LogOut size={15} suppressHydrationWarning />
+              </button>
+            </div>
           </div>
         </div>
       </header>
