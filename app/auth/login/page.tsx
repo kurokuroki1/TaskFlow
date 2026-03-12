@@ -83,11 +83,11 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-border bg-card shadow-lg p-6 space-y-5">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">Email or username</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="name@example.com"
+                type="text"
+                placeholder="name@example.com or user"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
