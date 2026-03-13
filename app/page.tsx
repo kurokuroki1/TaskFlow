@@ -12,7 +12,7 @@ import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortabl
 import Column from '@/components/ui/Column'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LayoutDashboard, RotateCcw, Plus, Check, X, LogOut, Layers } from 'lucide-react'
+import { LayoutDashboard, RotateCcw, Plus, Check, X, LogOut, Layers, Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getUser, logout, type User } from '@/lib/auth'
 
@@ -26,7 +26,7 @@ export default function BoardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
-  const { columns, moveTask, addColumn, resetBoard, initForUser } = useTaskStore()
+  const { columns, moveTask, addColumn, resetBoard, initForUser, streak, longestStreak } = useTaskStore()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState('')
@@ -153,6 +153,17 @@ export default function BoardPage() {
               <RotateCcw size={14} suppressHydrationWarning />
               <span className="hidden lg:inline">Reset</span>
             </Button>
+
+            {/* Streak indicator */}
+            {streak > 0 && (
+              <div
+                title={`${streak}-day streak · best: ${longestStreak}`}
+                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-semibold select-none"
+              >
+                <Flame size={13} suppressHydrationWarning />
+                {streak}
+              </div>
+            )}
 
             <ThemeToggle />
 

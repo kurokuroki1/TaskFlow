@@ -17,7 +17,11 @@ export type Column = {
 type TaskStore = {
   userId: string | null
   columns: Column[]
+  streak: number
+  longestStreak: number
+  lastActiveDate: string | null
   initForUser: (userId: string) => void
+  recordActivity: () => void
   addTask: (columnId: string, title: string, description?: string) => void
   updateTask: (taskId: string, columnId: string, title: string, description?: string) => void
   deleteTask: (taskId: string, columnId: string) => void
@@ -34,19 +38,38 @@ const initialColumns: Column[] = [
   { id: 'done', title: 'Done', tasks: [] },
 ]
 
+const today = () => new Date().toISOString().slice(0, 10)
+const yesterday = () => new Date(Date.now() - 864e5).toISOString().slice(0, 10)
+
 export const useTaskStore = create<TaskStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       userId: null,
       columns: initialColumns,
+      streak: 0,
+      longestStreak: 0,
+      lastActiveDate: null,
 
       initForUser: (userId) =>
         set((state) => {
           if (state.userId === userId) return {}
-          return { userId, columns: initialColumns }
+          return { userId, columns: initialColumns, streak: 0, longestStreak: 0, lastActiveDate: null }
         }),
 
-      addTask: (columnId, title, description = '') =>
+      recordActivity: () =>
+        set((state) => {
+          const t = today()
+          if (state.lastActiveDate === t) return {}
+          const newStreak = state.lastActiveDate === yesterday() ? state.streak + 1 : 1
+          return {
+            streak: newStreak,
+            longestStreak: Math.max(newStreak, state.longestStreak),
+            lastActiveDate: t,
+          }
+        }),
+
+      addTask: (columnId, title, description = '') => {
+        get().recordActivity()
         set((state) => ({
           columns: state.columns.map((col) =>
             col.id === columnId
@@ -59,7 +82,8 @@ export const useTaskStore = create<TaskStore>()(
                 }
               : col
           ),
-        })),
+        }))
+      },
 
       updateTask: (taskId, columnId, title, description = '') =>
         set((state) => ({
@@ -75,14 +99,16 @@ export const useTaskStore = create<TaskStore>()(
           ),
         })),
 
-      deleteTask: (taskId, columnId) =>
+      deleteTask: (taskId, columnId) => {
+        get().recordActivity()
         set((state) => ({
           columns: state.columns.map((col) =>
             col.id === columnId
               ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
               : col
           ),
-        })),
+        }))
+      },
 
       addColumn: (title) =>
         set((state) => ({
@@ -104,7 +130,8 @@ export const useTaskStore = create<TaskStore>()(
       resetBoard: () =>
         set((state) => ({ columns: initialColumns, userId: state.userId })),
 
-      moveTask: (taskId, sourceColumnId, targetColumnId, newPosition) =>
+      moveTask: (taskId, sourceColumnId, targetColumnId, newPosition) => {
+        get().recordActivity()
         set((state) => {
           const sourceCol = state.columns.find((c) => c.id === sourceColumnId)
           if (!sourceCol) return state
@@ -133,7 +160,8 @@ export const useTaskStore = create<TaskStore>()(
               return col
             }),
           }
-        }),
+        })
+      },
     }),
     { name: 'taskflow-storage' }
   )
