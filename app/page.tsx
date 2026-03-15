@@ -158,7 +158,7 @@ export default function BoardPage() {
             {streak > 0 && (
               <div
                 title={`${streak}-day streak · best: ${longestStreak}`}
-                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-semibold select-none"
+                className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-semibold select-none"
               >
                 <Flame size={13} suppressHydrationWarning />
                 {streak}

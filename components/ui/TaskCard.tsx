@@ -84,7 +84,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ id, title, description, stat
         <div className="flex gap-1.5">
           <button
             onClick={handleSave}
-            className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+            disabled={!editTitle.trim()}
+            className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Check size={12} suppressHydrationWarning />
             Save
@@ -106,6 +107,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ id, title, description, stat
       style={style}
       {...attributes}
       {...listeners}
+      onDoubleClick={() => setEditing(true)}
       className={cn(
         'group relative rounded-xl border border-border bg-card px-4 py-3',
         'shadow-sm hover:shadow-md transition-all duration-200',
@@ -126,7 +128,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ id, title, description, stat
         </button>
         <button
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onDelete(id) }}
+          onClick={(e) => { e.stopPropagation(); if (confirm('Delete this task?')) onDelete(id) }}
           className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
           aria-label="Delete task"
         >
